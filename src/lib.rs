@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, StdoutLock, Write};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
@@ -111,7 +112,24 @@ impl Message {
         writer: &mut std::io::StdoutLock,
         src_id: &mut Option<String>,
     ) -> io::Result<()> {
-        todo!();
+        let new_id = Uuid::now_v7();
+
+        let new_message = Message {
+            src: src_id.clone().expect("src id is already assigned"),
+            dest: self.src,
+            body: Body {
+                payload: PayloadType::Generate(GeneratePayload::GenerateOk {
+                    id: new_id.to_string(),
+                }),
+                msg_id: self.body.msg_id,
+                in_reply_to: self.body.msg_id,
+            },
+        };
+
+        serde_json::to_writer(&mut *writer, &new_message)?;
+        writer.write_all(b"\n")?;
+
+        Ok(())
     }
 }
 
