@@ -33,6 +33,50 @@ struct Message {
     body: Body,
 }
 
+impl Message {
+    pub fn handle(
+        self,
+        writer: &mut std::io::StdoutLock,
+        src_id: &mut Option<String>,
+    ) -> io::Result<()> {
+        let new_message: Message = match &self.body.payload {
+            Payload::Init {
+                node_id,
+                node_ids: _,
+            } => {
+                *src_id = Some(node_id.clone());
+
+                Message {
+                    src: src_id.clone().expect("src id already assigned"),
+                    dest: self.src,
+                    body: Body {
+                        payload: Payload::InitOk,
+                        msg_id: self.body.msg_id,
+                        in_reply_to: self.body.msg_id,
+                    },
+                }
+            }
+            Payload::Echo { echo } => Message {
+                src: src_id.clone().expect("src id already assigned"),
+                dest: self.src,
+                body: Body {
+                    payload: Payload::EchoOk {
+                        echo: echo.to_string(),
+                    },
+                    msg_id: self.body.msg_id,
+                    in_reply_to: self.body.msg_id,
+                },
+            },
+            _ => unreachable!(),
+        };
+
+        serde_json::to_writer(&mut *writer, &new_message)?;
+        writer.write_all(b"\n")?;
+
+        Ok(())
+    }
+}
+
 fn main() -> io::Result<()> {
     let stdin = std::io::stdin();
     let reader = stdin.lock();
@@ -41,41 +85,9 @@ fn main() -> io::Result<()> {
 
     for line in reader.lines() {
         let line = line?;
-        let mut message: Message = serde_json::from_str(&line).expect("Failed to deserialize");
+        let message: Message = serde_json::from_str(&line).expect("Failed to deserialize");
 
-        let new_message: Message = match &message.body.payload {
-            Payload::Init {
-                node_id,
-                node_ids: _,
-            } => {
-                src_id = Some(node_id.clone());
-
-                Message {
-                    src: src_id.clone().expect("src id already assigned"),
-                    dest: message.src,
-                    body: Body {
-                        payload: Payload::InitOk,
-                        msg_id: message.body.msg_id,
-                        in_reply_to: message.body.msg_id,
-                    },
-                }
-            }
-            Payload::Echo { echo } => Message {
-                src: src_id.clone().expect("src id already assigned"),
-                dest: message.src,
-                body: Body {
-                    payload: Payload::EchoOk {
-                        echo: echo.to_string(),
-                    },
-                    msg_id: message.body.msg_id,
-                    in_reply_to: message.body.msg_id,
-                },
-            },
-            _ => unreachable!(),
-        };
-
-        serde_json::to_writer(&mut writer, &new_message)?;
-        writer.write_all(b"\n")?;
+        message.handle(&mut writer, &mut src_id)?;
     }
     /* let message = Message {
         src: "c1".into(),
