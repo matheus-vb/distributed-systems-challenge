@@ -18,7 +18,7 @@ impl GeneratePayload {
         message: Message,
         writer: &mut std::io::StdoutLock,
         src_id: &mut Option<String>,
-    ) -> io::Result<()> {
+    ) -> io::Result<String> {
         let new_id = Uuid::now_v7();
 
         let new_message = Message {
@@ -33,9 +33,10 @@ impl GeneratePayload {
             },
         };
 
-        serde_json::to_writer(&mut *writer, &new_message)?;
+        let output = serde_json::to_string(&new_message).unwrap();
+        writer.write_all(output.as_bytes())?;
         writer.write_all(b"\n")?;
 
-        Ok(())
+        Ok(output)
     }
 }

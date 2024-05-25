@@ -31,16 +31,10 @@ impl Message {
         self,
         writer: &mut std::io::StdoutLock,
         src_id: &mut Option<String>,
-    ) -> io::Result<()> {
+    ) -> io::Result<String> {
         match &self.body.payload {
-            PayloadType::Echo(_) => {
-                EchoPayload::handle(self, writer, src_id)?;
-            }
-            PayloadType::Generate(_) => {
-                GeneratePayload::handle(self, writer, src_id)?;
-            }
-        };
-
-        Ok(())
+            PayloadType::Echo(_) => Ok(EchoPayload::handle(self, writer, src_id)?),
+            PayloadType::Generate(_) => Ok(GeneratePayload::handle(self, writer, src_id)?),
+        }
     }
 }
