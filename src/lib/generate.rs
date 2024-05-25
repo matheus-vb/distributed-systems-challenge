@@ -40,3 +40,44 @@ impl GeneratePayload {
         Ok(output)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::Value;
+    use uuid::Uuid;
+
+    use crate::message::{Body, Message, PayloadType};
+
+    use super::GeneratePayload;
+
+    #[test]
+    fn generate_uuid() {
+        let mut src_id = Some("n3".to_string());
+        let mut writer = std::io::stdout().lock();
+
+        let message = Message {
+            src: "c1".into(),
+            dest: "n1".into(),
+            body: Body {
+                msg_id: Some(1),
+                in_reply_to: None,
+                payload: PayloadType::Generate(GeneratePayload::Generate),
+            },
+        };
+
+        let output = GeneratePayload::handle(message, &mut writer, &mut src_id).unwrap();
+
+        let des_output: Value = serde_json::from_str(output.as_str()).unwrap();
+
+        assert_eq!(des_output["src"], "n3");
+        assert_eq!(des_output["dest"], "c1");
+        assert_eq!(des_output["body"]["type"], "generate_ok");
+        assert_eq!(des_output["body"]["msg_id"], 1);
+        assert_eq!(des_output["body"]["in_reply_to"], 1);
+
+        let uuid_str = des_output["body"]["id"]
+            .as_str()
+            .expect("should be a string");
+        assert!(Uuid::parse_str(uuid_str).is_ok());
+    }
+}
