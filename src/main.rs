@@ -1,7 +1,7 @@
-mod lib;
-use lib::*;
-
+extern crate ds_challenge;
 use std::io::{self, BufRead, Write};
+
+use ds_challenge::message::Message;
 
 fn main() -> io::Result<()> {
     let stdin = std::io::stdin();
