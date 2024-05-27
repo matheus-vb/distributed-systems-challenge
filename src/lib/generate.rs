@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::message::{Body, Message, PayloadType};
+use crate::message::{AppState, Body, Message, PayloadType};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
@@ -17,12 +17,12 @@ impl GeneratePayload {
     pub fn handle(
         message: Message,
         writer: &mut std::io::StdoutLock,
-        src_id: &mut Option<String>,
+        app_state: &mut AppState,
     ) -> io::Result<String> {
         let new_id = Uuid::now_v7();
 
         let new_message = Message {
-            src: src_id.clone().expect("src id is already assigned"),
+            src: app_state.src_id.clone().expect("src id already assigned"),
             dest: message.src,
             body: Body {
                 payload: PayloadType::Generate(GeneratePayload::GenerateOk {
@@ -43,16 +43,24 @@ impl GeneratePayload {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use serde_json::Value;
     use uuid::Uuid;
 
-    use crate::message::{Body, Message, PayloadType};
+    use crate::message::{AppState, Body, Message, PayloadType};
 
     use super::GeneratePayload;
 
     #[test]
     fn generate_uuid() {
-        let mut src_id = Some("n3".to_string());
+        let src_id = Some("n3".to_string());
+
+        let mut app_state = AppState {
+            src_id,
+            neighbours: BTreeMap::new(),
+        };
+
         let mut writer = std::io::stdout().lock();
 
         let message = Message {
@@ -65,7 +73,7 @@ mod tests {
             },
         };
 
-        let output = GeneratePayload::handle(message, &mut writer, &mut src_id).unwrap();
+        let output = GeneratePayload::handle(message, &mut writer, &mut app_state).unwrap();
 
         let des_output: Value = serde_json::from_str(output.as_str()).unwrap();
 

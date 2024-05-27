@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use serde::{Deserialize, Serialize};
 
-use crate::message::{Body, Message, PayloadType};
+use crate::message::{AppState, Body, Message, PayloadType};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
@@ -25,17 +25,17 @@ impl EchoPayload {
     pub fn handle(
         message: Message,
         writer: &mut std::io::StdoutLock,
-        src_id: &mut Option<String>,
+        app_state: &mut AppState,
     ) -> io::Result<String> {
         let new_message: Message = match &message.body.payload {
             PayloadType::Echo(EchoPayload::Init {
                 node_id,
                 node_ids: _,
             }) => {
-                *src_id = Some(node_id.clone());
+                app_state.src_id = Some(node_id.clone());
 
                 Message {
-                    src: src_id.clone().expect("src id already assigned"),
+                    src: app_state.src_id.clone().expect("src id already assigned"),
                     dest: message.src,
                     body: Body {
                         payload: PayloadType::Echo(EchoPayload::InitOk),
@@ -45,7 +45,7 @@ impl EchoPayload {
                 }
             }
             PayloadType::Echo(EchoPayload::Echo { echo }) => Message {
-                src: src_id.clone().expect("src id already assigned"),
+                src: app_state.src_id.clone().expect("src id already assigned"),
                 dest: message.src,
                 body: Body {
                     payload: PayloadType::Echo(EchoPayload::EchoOk {
@@ -71,13 +71,19 @@ impl EchoPayload {
 
 #[cfg(test)]
 mod tests {
-    use crate::message::{Body, Message, PayloadType};
+    use std::collections::BTreeMap;
+
+    use crate::message::{AppState, Body, Message, PayloadType};
 
     use super::EchoPayload;
 
     #[test]
     fn init_message() {
-        let mut src_id: Option<String> = None;
+        let src_id: Option<String> = None;
+        let mut app_state = AppState {
+            src_id,
+            neighbours: BTreeMap::new(),
+        };
         let mut writer = std::io::stdout().lock();
         let message = Message {
             src: "c1".into(),
@@ -92,20 +98,25 @@ mod tests {
             },
         };
 
-        let output = EchoPayload::handle(message, &mut writer, &mut src_id);
+        let output = EchoPayload::handle(message, &mut writer, &mut app_state);
 
         assert_eq!(
             output.unwrap(),
             r#"{"src":"n3","dest":"c1","body":{"type":"init_ok","msg_id":1,"in_reply_to":1}}"#
                 .to_string()
         );
-        assert_eq!(Some("n3".to_string()), src_id);
+        assert_eq!(Some("n3".to_string()), app_state.src_id);
         //let init_input = "{"src":"c1","dest":"n1","body":{"type":"init","msg_id":1, "node_id":"n3","node_ids":["n1","n2","n3"]}}"
     }
 
     #[test]
     fn echo_message() {
-        let mut src_id: Option<String> = Some("n3".to_string());
+        let src_id: Option<String> = Some("n3".to_string());
+        let mut app_state = AppState {
+            src_id,
+            neighbours: BTreeMap::new(),
+        };
+
         let mut writer = std::io::stdout().lock();
         let message = Message {
             src: "c1".into(),
@@ -119,7 +130,7 @@ mod tests {
             },
         };
 
-        let output = EchoPayload::handle(message, &mut writer, &mut src_id);
+        let output = EchoPayload::handle(message, &mut writer, &mut app_state);
 
         assert_eq!(
             output.unwrap(),
