@@ -59,6 +59,7 @@ mod tests {
         let mut app_state = AppState {
             src_id,
             neighbours: BTreeMap::new(),
+            record: vec![],
         };
 
         let mut writer = std::io::stdout().lock();

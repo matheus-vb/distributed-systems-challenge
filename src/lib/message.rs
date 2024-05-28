@@ -9,7 +9,8 @@ use crate::{broadcast::BroadcastPayload, echo::EchoPayload, generate::GeneratePa
 
 pub struct AppState {
     pub src_id: Option<String>,
-    pub neighbours: BTreeMap<String, Vec<String>>,
+    pub neighbours: BTreeMap<&'static str, Vec<String>>,
+    pub record: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

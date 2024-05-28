@@ -80,11 +80,15 @@ mod tests {
     #[test]
     fn init_message() {
         let src_id: Option<String> = None;
+
         let mut app_state = AppState {
             src_id,
             neighbours: BTreeMap::new(),
+            record: vec![],
         };
+
         let mut writer = std::io::stdout().lock();
+
         let message = Message {
             src: "c1".into(),
             dest: "n1".into(),
@@ -112,9 +116,11 @@ mod tests {
     #[test]
     fn echo_message() {
         let src_id: Option<String> = Some("n3".to_string());
+
         let mut app_state = AppState {
             src_id,
             neighbours: BTreeMap::new(),
+            record: vec![],
         };
 
         let mut writer = std::io::stdout().lock();
