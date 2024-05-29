@@ -23,7 +23,8 @@ fn main() -> io::Result<()> {
 
     for line in reader.lines() {
         let line = line?;
-        let message: Message = serde_json::from_str(&line).expect("Failed to deserialize");
+        let message: Message =
+            serde_json::from_str(&line).expect(format!("Failed to parse:\n{line}\n").as_str());
         message.handle(&mut writer, &mut app_state)?;
     }
 

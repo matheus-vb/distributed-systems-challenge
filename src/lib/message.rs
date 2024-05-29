@@ -12,7 +12,7 @@ use crate::{
 
 pub struct AppState {
     pub src_id: Option<String>,
-    pub neighbours: BTreeMap<&'static str, Vec<String>>,
+    pub neighbours: BTreeMap<String, Vec<String>>,
     pub record: Vec<String>,
 }
 

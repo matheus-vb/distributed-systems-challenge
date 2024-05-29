@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    collections::BTreeMap,
+    io::{self, Write},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -9,9 +12,8 @@ use crate::{
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TopologyData {
-    pub n1: Vec<String>,
-    pub n2: Vec<String>,
-    pub n3: Vec<String>,
+    #[serde(flatten)]
+    pub nodes: BTreeMap<String, Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -35,9 +37,10 @@ impl BroadcastPayload {
     ) -> io::Result<String> {
         let new_message: Message = match self {
             Self::Topology { topology } => {
-                app_state.neighbours.insert("n1", topology.n1.to_vec());
-                app_state.neighbours.insert("n2", topology.n2.to_vec());
-                app_state.neighbours.insert("n3", topology.n3.to_vec());
+                let _ = topology
+                    .nodes
+                    .iter()
+                    .map(|(key, value)| app_state.neighbours.insert(key.clone(), value.to_vec()));
 
                 Message {
                     src: app_state.src_id.clone().expect("src is already assigned"),
