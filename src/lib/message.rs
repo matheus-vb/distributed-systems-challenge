@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    io::{self},
+    error::Error,
+    io::{self, Error as IoError, ErrorKind},
 };
 
 use crate::{
@@ -46,15 +47,15 @@ impl Message {
         app_state: &mut AppState,
     ) -> io::Result<String> {
         match &self.body.payload {
-            PayloadType::Echo(_) => Ok(EchoPayload::handle(self, writer, app_state)?),
-            PayloadType::Generate(_) => Ok(GeneratePayload::handle(self, writer, app_state)?),
-            PayloadType::Broadcast(p) => Ok(BroadcastPayload::handle(
-                &p.clone(),
-                self,
-                writer,
-                app_state,
-            )?),
-            PayloadType::Gossip(_) => todo!(),
+            PayloadType::Echo(_) => EchoPayload::handle(self, writer, app_state),
+            PayloadType::Generate(_) => GeneratePayload::handle(self, writer, app_state),
+            PayloadType::Broadcast(payload) => {
+                BroadcastPayload::handle(&payload.clone(), self, writer, app_state)
+            }
+            PayloadType::Gossip(payload) => {
+                GossipPayload::handle(&payload.clone(), self, app_state)
+                    .map_err(|err| IoError::new(ErrorKind::Other, err))
+            }
         }
     }
 }
