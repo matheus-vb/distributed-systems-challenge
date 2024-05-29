@@ -4,7 +4,11 @@ use std::{
     io::{self, BufRead, Write},
 };
 
-use ds_challenge::message::{AppState, Message};
+use ds_challenge::{
+    broadcast::{BroadcastPayload, TopologyData},
+    echo::EchoPayload,
+    message::{AppState, Body, Message, PayloadType},
+};
 
 fn main() -> io::Result<()> {
     let stdin = std::io::stdin();
@@ -20,24 +24,31 @@ fn main() -> io::Result<()> {
     for line in reader.lines() {
         let line = line?;
         let message: Message = serde_json::from_str(&line).expect("Failed to deserialize");
-
         message.handle(&mut writer, &mut app_state)?;
     }
+
     /* let message = Message {
         src: "c1".into(),
         dest: "n1".into(),
         body: Body {
-            payload: Payload::Init {
-                node_id: "n1".to_string(),
-                node_ids: vec!["n2".to_string()],
-            },
-            msg_id: None,
+            msg_id: Some(1),
             in_reply_to: None,
+            payload: PayloadType::Broadcast(BroadcastPayload::Topology {
+                topology: TopologyData {
+                    n1: vec!["n2".to_string()],
+                    n2: vec!["n1".to_string(), "n3".to_string()],
+                    n3: vec!["n2".to_string()],
+                },
+            }),
         },
     };
 
+    serde_json::to_writer_pretty(&mut writer, &message)?; */
+
+    /*
     serde_json::to_writer(&mut writer, &message)?;
-    writer.write_all(b"\n")?; */
+    writer.write_all(b"\n")?;
+    */
 
     Ok(())
 }
@@ -47,3 +58,7 @@ fn main() -> io::Result<()> {
 //{"src":"c1","dest":"n1","body":{"type":"echo","msg_id":1,"echo":"Please echo 35"}}
 //Generate:
 //{"src":"c1","dest":"n1","body":{"type":"generate","msg_id":1}}
+//Topology:
+//{"src":"c1","dest":"n1","body":{"type":"topology","msg_id":1,"topology":{"n1":["n2","n3"],"n2":["n1"],"n3":["n1"]}}}
+//Broadcast:
+//{"src":"c1","dest":"n1","body":{"type":"broadcast","msg_id":1,"message":"hello"}}

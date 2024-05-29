@@ -1,11 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    io::{self, BufRead, StdoutLock, Write},
+    io::{self},
 };
-use uuid::Uuid;
 
-use crate::{broadcast::BroadcastPayload, echo::EchoPayload, generate::GeneratePayload};
+use crate::{
+    broadcast::BroadcastPayload, echo::EchoPayload, generate::GeneratePayload,
+    gossip::GossipPayload,
+};
 
 pub struct AppState {
     pub src_id: Option<String>,
@@ -19,6 +21,7 @@ pub enum PayloadType {
     Generate(GeneratePayload),
     Echo(EchoPayload),
     Broadcast(BroadcastPayload),
+    Gossip(GossipPayload),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -45,7 +48,13 @@ impl Message {
         match &self.body.payload {
             PayloadType::Echo(_) => Ok(EchoPayload::handle(self, writer, app_state)?),
             PayloadType::Generate(_) => Ok(GeneratePayload::handle(self, writer, app_state)?),
-            PayloadType::Broadcast(_) => todo!(),
+            PayloadType::Broadcast(p) => Ok(BroadcastPayload::handle(
+                &p.clone(),
+                self,
+                writer,
+                app_state,
+            )?),
+            PayloadType::Gossip(_) => todo!(),
         }
     }
 }
