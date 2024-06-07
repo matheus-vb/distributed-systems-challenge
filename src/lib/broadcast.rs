@@ -92,7 +92,7 @@ impl BroadcastPayload {
     }
 
     fn broadcast(
-        app_state: &AppState,
+        app_state: &mut AppState,
         writer: &mut std::io::StdoutLock,
         message: usize,
         msg_id: Option<usize>,
@@ -115,6 +115,8 @@ impl BroadcastPayload {
                 writer.write_all(b"\n")?;
             }
         }
+
+        app_state.record.push(message);
 
         Ok(())
     }
