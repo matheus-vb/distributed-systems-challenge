@@ -8,7 +8,7 @@ use crate::message::{AppState, Message};
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub struct GossipPayload {
-    pub message: String,
+    pub message: usize,
 }
 
 impl GossipPayload {
@@ -18,7 +18,7 @@ impl GossipPayload {
         app_state: &mut AppState,
     ) -> Result<String, &'static str> {
         if message.dest == app_state.src_id.clone().expect("src is already assigned") {
-            app_state.record.push(self.message.clone());
+            app_state.record.push(self.message);
             println!("read message!");
             Ok("read message".to_string())
         } else {

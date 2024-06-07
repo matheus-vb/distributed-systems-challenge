@@ -22,10 +22,10 @@ pub struct TopologyData {
 pub enum BroadcastPayload {
     Topology { topology: TopologyData },
     TopologyOk,
-    Broadcast { message: String },
+    Broadcast { message: usize },
     BroadcastOk,
     Read,
-    ReadOk { messages: Vec<String> },
+    ReadOk { messages: Vec<usize> },
 }
 
 impl BroadcastPayload {
@@ -53,7 +53,12 @@ impl BroadcastPayload {
                 }
             }
             Self::Broadcast { message } => {
-                BroadcastPayload::broadcast(app_state, writer, message, message_input.body.msg_id)?;
+                BroadcastPayload::broadcast(
+                    app_state,
+                    writer,
+                    *message,
+                    message_input.body.msg_id,
+                )?;
 
                 Message {
                     src: app_state.src_id.clone().expect("src is already assigned"),
@@ -89,7 +94,7 @@ impl BroadcastPayload {
     fn broadcast(
         app_state: &AppState,
         writer: &mut std::io::StdoutLock,
-        message: &String,
+        message: usize,
         msg_id: Option<usize>,
     ) -> io::Result<()> {
         let src_id = &app_state.src_id.clone().unwrap();
@@ -99,9 +104,7 @@ impl BroadcastPayload {
                     src: src_id.to_string(),
                     dest: node.to_string(),
                     body: Body {
-                        payload: PayloadType::Gossip(GossipPayload {
-                            message: message.clone(),
-                        }),
+                        payload: PayloadType::Gossip(GossipPayload { message: message }),
                         msg_id,
                         in_reply_to: msg_id,
                     },

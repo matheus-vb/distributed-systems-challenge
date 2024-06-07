@@ -62,8 +62,8 @@ fn main() -> io::Result<()> {
 //Topology:
 //{"src":"c1","dest":"n1","body":{"type":"topology","msg_id":1,"topology":{"n1":["n2","n3"],"n2":["n1"],"n3":["n1"]}}}
 //Broadcast:
-//{"src":"c1","dest":"n1","body":{"type":"broadcast","msg_id":1,"message":"hello"}}
+//{"src":"c1","dest":"n1","body":{"type":"broadcast","msg_id":1,"message":10}}
 //Gossip:
-//{"src":"c1","dest":"n3","body":{"type":"gossip","msg_id":1,"message":"hello"}}
+//{"src":"c1","dest":"n3","body":{"type":"gossip","msg_id":1,"message":10}}
 //Read:
 //{"src":"c1","dest":"n3","body":{"type":"read","msg_id":1}}
