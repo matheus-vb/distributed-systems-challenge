@@ -4,10 +4,11 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     gossip::GossipPayload,
-    message::{AppState, Body, Message, PayloadType},
+    message::{AppState, Body, Message, PayloadType, SeenMessage},
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -75,7 +76,7 @@ impl BroadcastPayload {
                 dest: message_input.src,
                 body: Body {
                     payload: PayloadType::Broadcast(BroadcastPayload::ReadOk {
-                        messages: app_state.record.clone(),
+                        messages: app_state.record.iter().map(|m| m.message).collect(),
                     }),
                     msg_id: message_input.body.msg_id,
                     in_reply_to: message_input.body.msg_id,
@@ -98,13 +99,18 @@ impl BroadcastPayload {
         msg_id: Option<usize>,
     ) -> io::Result<()> {
         let src_id = &app_state.src_id.clone().unwrap();
+        let new_id = Uuid::now_v7();
+
         if let Some(nodes) = app_state.neighbours.get(src_id.as_str()) {
             for node in nodes {
                 let new_message = Message {
                     src: src_id.to_string(),
                     dest: node.to_string(),
                     body: Body {
-                        payload: PayloadType::Gossip(GossipPayload { message: message }),
+                        payload: PayloadType::Gossip(GossipPayload {
+                            message,
+                            id: new_id.to_string(),
+                        }),
                         msg_id,
                         in_reply_to: msg_id,
                     },
@@ -116,8 +122,16 @@ impl BroadcastPayload {
             }
         }
 
-        app_state.record.push(message);
+        app_state.record.push(SeenMessage {
+            message,
+            id: new_id.to_string(),
+        });
 
         Ok(())
     }
+}
+
+pub trait Broadcast {
+    fn broadcast();
+    fn send();
 }

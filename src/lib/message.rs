@@ -13,7 +13,13 @@ use crate::{
 pub struct AppState {
     pub src_id: Option<String>,
     pub neighbours: BTreeMap<String, Vec<String>>,
-    pub record: Vec<usize>,
+    pub record: Vec<SeenMessage>,
+}
+
+#[derive(Clone)]
+pub struct SeenMessage {
+    pub message: usize,
+    pub id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

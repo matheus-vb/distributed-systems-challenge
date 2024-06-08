@@ -64,6 +64,6 @@ fn main() -> io::Result<()> {
 //Broadcast:
 //{"src":"c1","dest":"n1","body":{"type":"broadcast","msg_id":1,"message":10}}
 //Gossip:
-//{"src":"c1","dest":"n3","body":{"type":"gossip","msg_id":1,"message":10}}
+//{"src":"c1","dest":"n3","body":{"type":"gossip","msg_id":1,"message":10, id:"some_id"}}
 //Read:
 //{"src":"c1","dest":"n3","body":{"type":"read","msg_id":1}}
