@@ -20,7 +20,7 @@ impl GossipPayload {
         app_state: &mut AppState,
     ) -> io::Result<()> {
         //ignore message if already in the record
-        if app_state.record.iter().any(|msg| msg.id == self.id) {
+        if app_state.record.get(&self.id).is_some() {
             return Ok(());
         }
 
@@ -48,10 +48,7 @@ impl GossipPayload {
         }
 
         if message.dest == app_state.src_id.clone().expect("src is already assigned") {
-            app_state.record.push(SeenMessage {
-                message: self.message.clone(),
-                id: self.id.clone(),
-            });
+            app_state.record.insert(self.id.clone(), self.message);
             println!("read message!");
         };
 

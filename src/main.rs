@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
     let mut app_state = AppState {
         src_id: None,
         neighbours: BTreeMap::new(),
-        record: vec![],
+        record: BTreeMap::new(),
     };
 
     for line in reader.lines() {

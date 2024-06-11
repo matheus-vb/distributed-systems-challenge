@@ -76,7 +76,11 @@ impl BroadcastPayload {
                 dest: message_input.src,
                 body: Body {
                     payload: PayloadType::Broadcast(BroadcastPayload::ReadOk {
-                        messages: app_state.record.iter().map(|m| m.message).collect(),
+                        messages: app_state
+                            .record
+                            .iter()
+                            .map(|(_id, &message)| message)
+                            .collect(),
                     }),
                     msg_id: message_input.body.msg_id,
                     in_reply_to: message_input.body.msg_id,
@@ -122,10 +126,7 @@ impl BroadcastPayload {
             }
         }
 
-        app_state.record.push(SeenMessage {
-            message,
-            id: new_id.to_string(),
-        });
+        app_state.record.insert(new_id.to_string(), message);
 
         Ok(())
     }
