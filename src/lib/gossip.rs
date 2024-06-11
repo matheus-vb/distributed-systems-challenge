@@ -19,6 +19,11 @@ impl GossipPayload {
         writer: &mut std::io::StdoutLock,
         app_state: &mut AppState,
     ) -> io::Result<()> {
+        //ignore message if already in the record
+        if app_state.record.iter().any(|msg| msg.id == self.id) {
+            return Ok(());
+        }
+
         let src_id = &app_state.src_id.clone().unwrap();
 
         if let Some(nodes) = app_state.neighbours.get(src_id.as_str()) {
