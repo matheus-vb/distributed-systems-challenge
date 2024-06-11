@@ -59,8 +59,8 @@ impl Message {
                 BroadcastPayload::handle(&payload.clone(), self, writer, app_state)
             }
             PayloadType::Gossip(payload) => {
-                GossipPayload::handle(&payload.clone(), self, app_state)
-                    .map_err(|err| IoError::new(ErrorKind::Other, err))
+                GossipPayload::handle(&payload.clone(), self, writer, app_state)
+                    .map(|()| String::new())
             }
         }
     }
