@@ -48,7 +48,6 @@ impl GossipPayload {
         }
 
         app_state.record.insert(self.id.clone(), self.message);
-        println!("read message!");
 
         Ok(())
     }
