@@ -47,10 +47,8 @@ impl GossipPayload {
             }
         }
 
-        if message.dest == app_state.src_id.clone().expect("src is already assigned") {
-            app_state.record.insert(self.id.clone(), self.message);
-            println!("read message!");
-        };
+        app_state.record.insert(self.id.clone(), self.message);
+        println!("read message!");
 
         Ok(())
     }

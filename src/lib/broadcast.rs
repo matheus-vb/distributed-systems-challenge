@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use serde::{Deserialize, Serialize};
+use serde::{de::value, Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
@@ -38,10 +38,9 @@ impl BroadcastPayload {
     ) -> io::Result<String> {
         let new_message: Message = match self {
             Self::Topology { topology } => {
-                let _ = topology
-                    .nodes
-                    .iter()
-                    .map(|(key, value)| app_state.neighbours.insert(key.clone(), value.to_vec()));
+                for (key, value) in topology.nodes.iter() {
+                    app_state.neighbours.insert(key.to_string(), value.to_vec());
+                }
 
                 Message {
                     src: app_state.src_id.clone().expect("src is already assigned"),
